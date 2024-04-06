@@ -1,0 +1,9 @@
+services:
+  cs132-env:
+    container_name: cs132-env
+    image: cs132-env:latest
+    working_dir: /cs132
+    environment:
+      GRADLE_VERSION: 8.7
+    volumes:
+      - .:/cs132
