@@ -1,9 +1,9 @@
 #!/bin/bash
 
 export CS132_ENV_ARCH="$(uname -m)"
-export CS132_ENV_BIN_DIR="$(dirname "$(realpath "bin/init")")"
-export CS132_ENV_OLD_PATH="$PATH"
 export CS132_ENV_MOUNT_DIR="$(realpath "${1:-.}")"
+export CS132_ENV_BIN_DIR="$(dirname "$(realpath "bin/init")")"
+
 
 echo "Detecting architecture..."
 echo "Found $CS132_ENV_ARCH"
@@ -26,18 +26,3 @@ echo "      cmd stop"
 echo
 echo "* To remove the container, run"
 echo "      source cmd remove"
-
-# echo "============================"
-# echo "Notes"
-# echo "============================"
-# echo "* To start/stop the container, run"
-# echo "      cmd start/stop"
-# echo
-# echo "* To run a gradle command in the container, run"
-# echo "      cmd [your gradle command here] [your project folder]"
-# echo
-# echo "  e.g. If your project folder is named 'hw1',"
-# echo "           cmd test hw1"
-# echo "       will run"
-# echo "           cd hw1 && gradle test"
-# echo "       in the container"
