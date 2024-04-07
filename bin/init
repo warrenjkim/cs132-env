@@ -11,36 +11,38 @@ fi
 if [[ ! -z $CS132_ENV_BIN_DIR ]]; then
     echo "$CS132_ENV_BIN_DIR is already in \$PATH! Starting container instead..."
     echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
-    return
+
+else
+    export CS132_ENV_ARCH="$( uname -m )"
+    echo "created environment variable: \$CS132_ENV_ARCH... "
+
+    export CS132_ENV_BIN_DIR="$( dirname "$( realpath "bin/init" )" )"
+    echo "created environment variable: \$CS132_ENV_BIN_DIR..."
+
+    export CS132_ENV_MOUNT_DIR="$( realpath "${1:-.}" )"
+    echo "created environment variable: \$CS132_ENV_MOUNT_DIR..."
+    echo
+
+    echo "Detecting architecture..."
+    echo "Found $CS132_ENV_ARCH"
+    echo
+
+    echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
+    export PATH="$CS132_ENV_BIN_DIR:$PATH"
+    echo "\$PATH is now $PATH"
+    echo
+
+    echo "Mounting '$CS132_ENV_MOUNT_DIR' to '/cs132'..."
+    echo
+
+    echo "============================"
+    echo "Starting docker container..."
+    echo "============================"
+    echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
 fi
 
-
-export CS132_ENV_ARCH="$( uname -m )"
-echo "created environment variable: \$CS132_ENV_ARCH... "
-
-export CS132_ENV_BIN_DIR="$( dirname "$( realpath "bin/init" )" )"
-echo "created environment variable: \$CS132_ENV_BIN_DIR..."
-
-export CS132_ENV_MOUNT_DIR="$( realpath "${1:-.}" )"
-echo "created environment variable: \$CS132_ENV_MOUNT_DIR..."
+cmd ls
 echo
-
-echo "Detecting architecture..."
-echo "Found $CS132_ENV_ARCH"
-echo
-
-echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
-export PATH="$CS132_ENV_BIN_DIR:$PATH"
-echo "\$PATH is now $PATH"
-echo
-
-echo "Mounting '$CS132_ENV_MOUNT_DIR' to '/cs132'..."
-echo
-
-echo "============================"
-echo "Starting docker container..."
-echo "============================"
-echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
 
 echo "* To stop the container, run"
 echo "      cmd stop"

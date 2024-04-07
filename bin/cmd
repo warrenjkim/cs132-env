@@ -6,7 +6,9 @@ HW=$2
 
 if [[ -z "$CMD" ]]; then
     echo "Usage: cmd [gradle command] [project root]"
-    echo
+    exit 0
+
+elif [[ "$CMD" == "ls" ]]; then
     echo "Your project roots are:"
     ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "ls -l | grep '^d' | awk '{print \$9}'" )
     exit 0
@@ -30,7 +32,6 @@ elif [[ "$CMD" == "remove" ]]; then
     ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose down -v -t 0 )
     echo "Removing $CS132_ENV_BIN_DIR from \$PATH..."
     export PATH="$( echo $PATH | sed -E "s|${CS132_ENV_BIN_DIR}:||g" )"
-    echo
     echo "\$PATH is now $PATH"
 
     echo
