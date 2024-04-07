@@ -3,7 +3,5 @@ services:
     container_name: cs132-env
     image: warrenjk/cs132-env:${CS132_ENV_ARCH}
     working_dir: /cs132
-    environment:
-      GRADLE_VERSION: 8.7
     volumes:
       - ${CS132_ENV_MOUNT_DIR}:/cs132
