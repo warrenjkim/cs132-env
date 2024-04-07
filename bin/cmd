@@ -1,10 +1,16 @@
 #!/bin/bash
 
 CONTAINER_NAME=cs132-env
-CMD=$(echo $1 | tr '[:upper:]' '[:lower:]')
+CMD=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 HW=$2
 
-if [[ "$CMD" == "start" ]]; then
+if [[ -z "$CMD" ]]; then
+    echo "Usage: cmd [gradle command] [project root]"
+    echo
+    echo "Your project roots are:"
+    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "ls -l | grep '^d' | awk '{print \$9}'")
+
+elif [[ "$CMD" == "start" ]]; then
     (cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d)
 
 elif [[ "$CMD" == "stop" ]]; then
@@ -28,7 +34,7 @@ elif [[ "$CMD" == "remove" ]]; then
     unset CS132_ENV_MOUNT_DIR
 
 else
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec $CONTAINER_NAME bash -c "gradle --version")
+    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "gradle --version")
     echo
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec $CONTAINER_NAME bash -c "cd ./${HW} && gradle ${CMD}")
+    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "cd ./${HW} && gradle ${CMD}")
 fi

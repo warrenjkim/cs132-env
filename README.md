@@ -14,7 +14,7 @@ git clone git@github.com/warrenjkim/cs132-env.git
 Then run the following to start the container:
 ```console
 user@host:~$ cd cs132-env
-user@host:~$ source bin/init [mount_dir]
+user@host:~/cs132-env$ source bin/init [mount_dir]
 ```
 replacing `mount_dir` with your desired mount. By default, it will
 set the mount directory to `cs132-env`. For example, if your project structure
