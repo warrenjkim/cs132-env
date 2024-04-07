@@ -1,9 +1,28 @@
 #!/bin/bash
 
-export CS132_ENV_ARCH="$(uname -m)"
-export CS132_ENV_MOUNT_DIR="$(realpath "${1:-.}")"
-export CS132_ENV_BIN_DIR="$(dirname "$(realpath "bin/init")")"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    echo "To run correctly, please source this script by running"
+    echo "    source bin/init"
+    exit
+fi
 
+
+# bin is already in $PATH
+if [[ ! -z $(echo "$PATH" | grep "$CS132_ENV_BIN_DIR") ]]; then
+    echo "$CS132_ENV_BIN_DIR is already in \$PATH! Starting container instead..."
+    echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
+    return
+fi
+
+
+export CS132_ENV_ARCH="$( uname -m )"
+echo "created environment variable: \$CS132_ENV_ARCH... "
+
+export CS132_ENV_BIN_DIR="$( dirname "$( realpath "bin/init" )" )"
+echo "created environment variable: \$CS132_ENV_BIN_DIR..."
+
+export CS132_ENV_MOUNT_DIR="$( realpath "${1:-.}" )"
+echo "created environment variable: \$CS132_ENV_MOUNT_DIR..."
 
 echo "Detecting architecture..."
 echo "Found $CS132_ENV_ARCH"
@@ -19,10 +38,12 @@ echo "Mounting '$CS132_ENV_MOUNT_DIR' to '/cs132'..."
 echo "============================"
 echo "Starting docker container..."
 echo "============================"
-echo $(cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d)
+echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
 
 echo "* To stop the container, run"
 echo "      cmd stop"
 echo
 echo "* To remove the container, run"
 echo "      source cmd remove"
+
+exit 0

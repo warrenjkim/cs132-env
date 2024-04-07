@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINER_NAME=cs132-env
+CONTAINER_NAME="cs132-env"
 CMD=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 HW=$2
 
@@ -8,18 +8,28 @@ if [[ -z "$CMD" ]]; then
     echo "Usage: cmd [gradle command] [project root]"
     echo
     echo "Your project roots are:"
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "ls -l | grep '^d' | awk '{print \$9}'")
+    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "ls -l | grep '^d' | awk '{print \$9}'" )
+    exit 0
 
 elif [[ "$CMD" == "start" ]]; then
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d)
+    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
+    exit 0
 
 elif [[ "$CMD" == "stop" ]]; then
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose stop -t 0)
+    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose stop -t 0 )
+    exit 0
 
 elif [[ "$CMD" == "remove" ]]; then
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose down -v -t 0)
+
+    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+        echo "To run correctly, please source this script by running"
+        echo "    source cmd remove"
+        exit
+    fi
+
+    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose down -v -t 0 )
     echo "Removing $CS132_ENV_BIN_DIR from \$PATH..."
-    export PATH="$(echo $PATH | sed -E "s|${CS132_ENV_BIN_DIR}:||g")"
+    export PATH="$( echo $PATH | sed -E "s|${CS132_ENV_BIN_DIR}:||g" )"
     echo
     echo "\$PATH is now $PATH"
 
@@ -32,9 +42,11 @@ elif [[ "$CMD" == "remove" ]]; then
 
     echo "Unsetting \$CS132_ENV_MOUNT_DIR..."
     unset CS132_ENV_MOUNT_DIR
-
-else
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "gradle --version")
-    echo
-    (cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "cd ./${HW} && gradle ${CMD}")
+    return
 fi
+
+( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "gradle --version" )
+echo
+( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CONTAINER_NAME" bash -c "cd ./${HW} && gradle ${CMD}" )
+
+exit 0
