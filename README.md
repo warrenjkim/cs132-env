@@ -34,34 +34,34 @@ set `mount_dir` to `cs132`.
 ## Commands
 To start the container, run:
 ```
-cmd start
+ccenv start
 ```
 
 To stop the container, run:
 ```
-cmd stop
+ccenv stop
 ```
 
 To remove the container and unset all exported variables, run:
 ```bash
-source cmd remove
+source ccenv remove
 ```
 * **Note:** This will also remove `/path/to/cs132-env/bin` from `$PATH`.
 
 To see which project roots are mounted, run:
 ```
-cmd ls
+ccenv ls
 ```
 
 ### Gradle commands
 To run a gradle command in the container, run:
 ```
-cmd [your gradle command here] [your project root]
+ccenv [your gradle command here] [your project root]
 ```
 
 For example, if your project root is `hw1`,
 ```
-cmd test hw1
+ccenv test hw1
 ```
 will run `gradle test` with `hw1` as the project root.
 
