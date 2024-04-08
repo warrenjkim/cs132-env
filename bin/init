@@ -39,15 +39,18 @@ else
     echo "Starting docker container..."
     echo "============================"
     echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
+    export CS132_ENV_CONTAINER_NAME="$( docker ps -a | grep 'cs132-env' | awk '{print $(NF)}' )"
+    echo "created environment variable: \$CS132_ENV_CONTAINER_NAME..."
+    echo
 fi
 
-cmd ls
+ccenv ls
 echo
 
 echo "* To stop the container, run"
-echo "      cmd stop"
+echo "      ccenv stop"
 echo
 echo "* To remove the container, run"
-echo "      source cmd remove"
+echo "      source ccenv remove"
 
 return
