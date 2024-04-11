@@ -4,16 +4,28 @@ CMD=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 HW=$2
 
 if [[ -z "$CMD" ]]; then
-    echo "Usage: cmd [gradle command] [project root]"
+    echo "Usage: ccenv [gradle command] [project root]"
+    echo "Usage: ccenv cmd [\"bash command\"]"
+    ccenv ls
     exit 0
 
 elif [[ "$CMD" == "cmd" ]]; then
-    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "$2" )
+    ( cd "$CS132_ENV_BIN_DIR/docker" && \
+        docker compose exec "$CS132_ENV_CONTAINER_NAME" \
+        bash -c "$2" )
     exit 0
 
 elif [[ "$CMD" == "ls" ]]; then
-    echo "Your project roots are:"
-    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "ls -l | grep '^d' | awk '{print \$9}'" )
+    NUM_ROOTS="$( cd "$CS132_ENV_BIN_DIR/docker" && \
+        docker compose exec -T "$CS132_ENV_CONTAINER_NAME" \
+        bash -c "find . -type f -name 'build.gradle' | wc -l" )"
+
+    echo "=============================================="
+    echo "Found $NUM_ROOTS project roots. Your project roots are:"
+    echo "=============================================="
+    ( cd "$CS132_ENV_BIN_DIR/docker" && \
+        docker compose exec -T "$CS132_ENV_CONTAINER_NAME" \
+        bash -c "realpath \$(dirname \$(find . -type f -name 'build.gradle'))" )
     exit 0
 
 elif [[ "$CMD" == "start" ]]; then
@@ -29,7 +41,7 @@ elif [[ "$CMD" == "remove" ]]; then
     if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
         echo "To run correctly, please source this script by running"
         echo "    source cmd remove"
-        exit
+        exit 0
     fi
 
     ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose down -v -t 0 )
@@ -50,10 +62,11 @@ elif [[ "$CMD" == "remove" ]]; then
     echo "Unsetting \$CS132_ENV_CONTAINER_NAME..."
     unset CS132_ENV_CONTAINER_NAME
     return
-fi
 
-( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "gradle --version" )
-echo
-( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "cd ./${HW} && gradle ${CMD}" )
+else # gradle commands
+    ( cd "$CS132_ENV_BIN_DIR/docker" && \
+        docker compose exec "$CS132_ENV_CONTAINER_NAME" \
+        bash -c "cd ./${HW} && gradle ${CMD}" )
+fi
 
 exit 0

@@ -14,10 +14,10 @@ if [[ ! -z $CS132_ENV_BIN_DIR ]]; then
 
 else
     export CS132_ENV_BIN_DIR="$( dirname "$( realpath "bin/init" )" )"
-    echo "created environment variable: \$CS132_ENV_BIN_DIR..."
+    echo "Created environment variable: \$CS132_ENV_BIN_DIR..."
 
     export CS132_ENV_MOUNT_DIR="$( realpath "${1:-.}" )"
-    echo "created environment variable: \$CS132_ENV_MOUNT_DIR..."
+    echo "Created environment variable: \$CS132_ENV_MOUNT_DIR..."
     echo
 
     echo "Detecting architecture..."
@@ -35,7 +35,7 @@ else
             exit 1
             ;;
     esac
-    echo "created environment variable: \$CS132_ENV_ARCH... "
+    echo "Created environment variable: \$CS132_ENV_ARCH... "
     echo
 
     echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
@@ -43,7 +43,7 @@ else
     echo "\$PATH is now $PATH"
     echo
 
-    echo "Mounting '$CS132_ENV_MOUNT_DIR' to '/cs132'..."
+    echo "Mounting $CS132_ENV_MOUNT_DIR to /cs132..."
     echo
 
     echo "============================"
@@ -51,15 +51,20 @@ else
     echo "============================"
     echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
     export CS132_ENV_CONTAINER_NAME="$( docker ps -a | grep 'cs132-env' | awk '{print $(NF)}' )"
-    echo "created environment variable: \$CS132_ENV_CONTAINER_NAME..."
+    echo "Created environment variable: \$CS132_ENV_CONTAINER_NAME..."
+    echo "Mounted '$CS132_ENV_MOUNT_DIR' to /cs132."
     echo
 fi
 
-( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "gradle --version" )
-( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "javacc -version" )
+( cd "$CS132_ENV_BIN_DIR/docker" && \
+    docker compose exec "$CS132_ENV_CONTAINER_NAME" \
+    bash -c "gradle --version | grep -e \"Gradle [[:digit:]]\+\|JVM\" | tr -s [:space:] | sed -E \"s/Gradle/Gradle:/\"" )
 ccenv ls
 echo
 
+echo "====="
+echo "Notes"
+echo "====="
 echo "* To stop the container, run"
 echo "      ccenv stop"
 echo
