@@ -1,7 +1,8 @@
 services:
   cs132-env:
     container_name: cs132-env
-    image: warrenjk/cs132-env:${CS132_ENV_ARCH}
+    image: test-env:latest
+      #image: warrenjk/cs132-env:${CS132_ENV_ARCH}
     working_dir: /cs132
     volumes:
       - ${CS132_ENV_MOUNT_DIR}:/cs132

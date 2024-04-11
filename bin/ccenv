@@ -7,6 +7,10 @@ if [[ -z "$CMD" ]]; then
     echo "Usage: cmd [gradle command] [project root]"
     exit 0
 
+elif [[ "$CMD" == "cmd" ]]; then
+    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "$2" )
+    exit 0
+
 elif [[ "$CMD" == "ls" ]]; then
     echo "Your project roots are:"
     ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "ls -l | grep '^d' | awk '{print \$9}'" )

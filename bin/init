@@ -13,9 +13,6 @@ if [[ ! -z $CS132_ENV_BIN_DIR ]]; then
     echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
 
 else
-    export CS132_ENV_ARCH="$( uname -m )"
-    echo "created environment variable: \$CS132_ENV_ARCH... "
-
     export CS132_ENV_BIN_DIR="$( dirname "$( realpath "bin/init" )" )"
     echo "created environment variable: \$CS132_ENV_BIN_DIR..."
 
@@ -24,7 +21,21 @@ else
     echo
 
     echo "Detecting architecture..."
-    echo "Found $CS132_ENV_ARCH"
+    echo "Found $ARCH"
+    ARCH="$( uname -m )"
+    case "$ARCH" in
+        x86_64|amd64)
+            export CS132_ENV_ARCH="amd64"
+            ;;
+        aarch64|arm64)
+            export CS132_ENV_ARCH="arm64"
+            ;;
+        *)
+            echo "$ARCH is unsupported."
+            exit 1
+            ;;
+    esac
+    echo "created environment variable: \$CS132_ENV_ARCH... "
     echo
 
     echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
@@ -44,6 +55,8 @@ else
     echo
 fi
 
+( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "gradle --version" )
+( cd "$CS132_ENV_BIN_DIR/docker" && docker compose exec "$CS132_ENV_CONTAINER_NAME" bash -c "javacc -version" )
 ccenv ls
 echo
 
