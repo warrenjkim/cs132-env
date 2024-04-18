@@ -1,28 +1,53 @@
 #!/bin/bash
 
+while getopts "hv" arg; do
+    case "$arg" in
+        h) unset CMD
+            ;;
+        v) VERBOSE=1
+            ;;
+        *) break
+            ;;
+    esac
+done
+
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "To run correctly, please source this script by running"
     echo "    source bin/init"
     exit 0
 fi
 
-
 # bin is already in $PATH
 if [[ ! -z $CS132_ENV_BIN_DIR ]]; then
-    echo "$CS132_ENV_BIN_DIR is already in \$PATH! Starting container instead..."
-    echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
+    if [[ -z $( cd "$CS132_ENV_BIN_DIR/docker" && \
+        docker ps -a | grep "$CS132_ENV_CONTAINER_NAME" ) ]]; then
+            echo "$CS132_ENV_BIN_DIR is already in \$PATH!"
+            echo "Starting container instead..."
+            echo
+            ccenv start && ccenv -h
+        else
+            echo "Docker container is already running!"
+            echo
+            ccenv -h
+    fi
 
 else
     export CS132_ENV_BIN_DIR="$( dirname "$( realpath "bin/init" )" )"
-    echo "Created environment variable: \$CS132_ENV_BIN_DIR..."
+    if [[ -n "$VERBOSE" ]]; then
+        echo "Created environment variable: \$CS132_ENV_BIN_DIR..."
+        echo "Created environment variable: \$CS132_ENV_MOUNT_DIR..."
+        echo
+
+        echo "Detecting architecture..."
+    fi
 
     export CS132_ENV_MOUNT_DIR="$( realpath "${1:-.}" )"
-    echo "Created environment variable: \$CS132_ENV_MOUNT_DIR..."
-    echo
-
-    echo "Detecting architecture..."
-    echo "Found $ARCH"
     ARCH="$( uname -m )"
+
+    if [[ -n "$VERBOSE" ]]; then
+        echo "Found $ARCH"
+    fi
+
     case "$ARCH" in
         x86_64|amd64)
             export CS132_ENV_ARCH="amd64"
@@ -35,40 +60,34 @@ else
             exit 1
             ;;
     esac
-    echo "Created environment variable: \$CS132_ENV_ARCH... "
-    echo
 
-    echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
+    if [[ -n "$VERBOSE" ]]; then
+        echo "Created environment variable: \$CS132_ENV_ARCH... "
+        echo
+        echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
+    fi
+
     export PATH="$CS132_ENV_BIN_DIR:$PATH"
-    echo "\$PATH is now $PATH"
-    echo
 
-    echo "Mounting $CS132_ENV_MOUNT_DIR to /cs132..."
-    echo
+    if [[ -n "$VERBOSE" ]]; then
+        echo "\$PATH is now $PATH"
+        echo
+        echo "Mounting $CS132_ENV_MOUNT_DIR to /cs132..."
+        echo
+    fi
 
     echo "============================"
     echo "Starting docker container..."
     echo "============================"
-    echo $( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
+    ccenv start
     export CS132_ENV_CONTAINER_NAME="$( docker ps -a | grep 'cs132-env' | awk '{print $(NF)}' )"
-    echo "Created environment variable: \$CS132_ENV_CONTAINER_NAME..."
+
+    if [[ -n "$VERBOSE" ]]; then
+        echo "Created environment variable: \$CS132_ENV_CONTAINER_NAME..."
+    fi
+
     echo "Mounted '$CS132_ENV_MOUNT_DIR' to /cs132."
     echo
 fi
-
-( cd "$CS132_ENV_BIN_DIR/docker" && \
-    docker compose exec "$CS132_ENV_CONTAINER_NAME" \
-    bash -c "gradle --version | grep -e \"Gradle [[:digit:]]\+\|JVM\" | tr -s [:space:] | sed -E \"s/Gradle/Gradle:/\"" )
-ccenv ls
-echo
-
-echo "====="
-echo "Notes"
-echo "====="
-echo "* To stop the container, run"
-echo "      ccenv stop"
-echo
-echo "* To remove the container, run"
-echo "      source ccenv remove"
 
 return
