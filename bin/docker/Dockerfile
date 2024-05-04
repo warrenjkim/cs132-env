@@ -19,7 +19,14 @@ ENV PATH=${JAVACC_HOME}/scripts:${GRADLE_HOME}/bin:${PATH}
 
 WORKDIR /cs132
 
+
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+RUN groupadd -f ${GROUP} \
+    && useradd -m -s /bin/bash -g ${GROUP} ${USER} \
+    && chown -R ${USER}:${GROUP} /cs132 /opt
+
+USER ${USER}
 
 ENTRYPOINT ["/entrypoint.sh"]

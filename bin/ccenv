@@ -1,199 +1,113 @@
 #!/bin/bash
 
 CMD="$1"
-#$(echo "$1" | tr '[:upper:]' '[:lower:]')
-HW="$2"
+HW="${!#}"
+SH_CMD="${@:2}"
+GRADLE_CMD="${@:2}"
+NEW_MOUNT_DIR="$2"
+unset VERBOSE
 
-while getopts "hv" arg; do
-    case "$arg" in
-        h) unset CMD
-            ;;
-        v) VERBOSE=1
-            ;;
-        *) break
-            ;;
-    esac
+OPTSTRING="hv"
+
+while getopts ${OPTSTRING} opt; do
+  case ${opt} in
+    h)
+      unset CMD
+      ;;
+    v)
+      VERBOSE="true"
+      CMD="$2"
+      SH_CMD="${@:3}"
+      GRADLE_CMD="${@:3}"
+      NEW_MOUNT_DIR="$3"
+      ;;
+    ?)
+      break
+      ;;
+  esac
 done
 
-if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
-    if [[ "$CMD" != "remove" ]] || [[ "$CMD" != "reset" ]]; then
-        echo "This command should not be sourced. Please the command without source"
-        echo "    ccenv $CMD $HW"
-        return
-    fi
+if [[ ${BASH_SOURCE[0]} != "$0" && $1 == "-v" ]]; then
+  VERBOSE="true"
+  CMD="$2"
+  SH_CMD="${@:3}"
+  GRADLE_CMD="${@:3}"
+  NEW_MOUNT_DIR="$3"
 fi
 
-
-if [[ -z "$CMD" ]]; then
-    echo "Usage: "$(basename $0)" [gradle command] [project root] [-h | -v]"
-    echo "       "$(basename $0)" cmd \"[bash command]\" [-h | -v]"
-    echo "       "$(basename $0)" [command] [-h | -v]"
-    echo
-    echo "* To view the project root(s) mounted to the container, run"
-    echo "      ccenv ls"
-    echo
-    echo "* To start the container, run"
-    echo "      ccenv start"
-    echo "  - Note: The container is started by default when you run"
-    echo "          source bin/init"
-    echo
-    echo "* To stop the container, run"
-    echo "      ccenv stop"
-    echo
-    echo "* To remove the container, run"
-    echo "      source ccenv remove"
-    echo
-    echo "* To reset the container, run"
-    echo "      source ccenv reset"
-    echo
-    echo "* To run gradle commands, run"
-    echo "      ccenv [gradle_command] [project_root]"
-    echo
-    echo "* To run bash commands, run"
-    echo "      ccenv \"[bash_command]\""
-    echo "  - Note: You must wrap your bash_command in quotes if your"
-    echo "          command contains arguments."
-    echo
-    echo "The -h and -v flags are for help and verbose, respectively"
-    ccenv ls
-
-    exit 0
-
-elif [[ "$CMD" == "cmd" ]]; then
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Running cmd \"$2\"..."
-        echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && \\"
-        echo "  docker compose exec \"$CS132_ENV_CONTAINER_NAME\" \\"
-        echo "  bash -c \"$2\" )"
-        echo
-    fi
-
-    ( cd "$CS132_ENV_BIN_DIR/docker" && \
-        docker compose exec "$CS132_ENV_CONTAINER_NAME" \
-        bash -c "$2" )
-
-    exit 0
-
-elif [[ "$CMD" == "ls" ]]; then
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Finding the number of project roots..."
-        echo "NUM_ROOTS=\"\$( cd \"$CS132_ENV_BIN_DIR/docker\" && \\"
-        echo "                docker compose exec \"$CS132_ENV_CONTAINER_NAME\" \\"
-        echo "                bash -c \"find . -type f -name 'build.gradle' | wc -l\" )\""
-        echo
-        echo "Listing project roots..."
-        echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && \\"
-        echo "  docker compose exec -T \"$CS132_ENV_CONTAINER_NAME\" \\"
-        echo "  bash -c \"realpath \$(dirname \$(find . -type f -name 'build.gradle'))\" )"
-    fi
-
-    NUM_ROOTS="$( cd "$CS132_ENV_BIN_DIR/docker" && \
-        docker compose exec "$CS132_ENV_CONTAINER_NAME" \
-        bash -c "find . -type f -name 'build.gradle' | wc -l" )"
-
-    echo "=========================================="
-    echo "Found $NUM_ROOTS project root(s) mounted to /cs132."
-    echo "Your project root(s) are:"
-    echo "=========================================="
-    ( cd "$CS132_ENV_BIN_DIR/docker" && \
-        docker compose exec -T "$CS132_ENV_CONTAINER_NAME" \
-        bash -c "realpath \$(dirname \$(find . -type f -name 'build.gradle'))" )
-
-    exit 0
-
-elif [[ "$CMD" == "start" ]]; then
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Starting container..."
-        echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && docker compose up -d )"
-    fi
-
-    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose up -d )
-
-    exit 0
-
-elif [[ "$CMD" == "stop" ]]; then
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Stopping container..."
-        echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && docker compose stop -t 0 )"
-    fi
-
-    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose stop -t 0 )
-
-    exit 0
-
-elif [[ "$CMD" == "remove" ]]; then
-    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-        echo "To run correctly, please source this script by running"
-        echo "    source ccenv remove"
-        exit 0
-    fi
-
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Removing container..."
-        echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && docker compose down -v -t 0 )"
-    fi
-
-    ( cd "$CS132_ENV_BIN_DIR/docker" && docker compose down -v -t 0 )
-
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Removing $CS132_ENV_BIN_DIR from \$PATH..."
-    fi
-
-    export PATH="$( echo $PATH | sed -E "s|${CS132_ENV_BIN_DIR}:||g" )"
-
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "\$PATH is now $PATH"
-        echo
-        echo "Unsetting \$CS132_ENV_ARCH..."
-        echo "Unsetting \$CS132_ENV_BIN_DIR..."
-        echo "Unsetting \$CS132_ENV_MOUNT_DIR..."
-        echo "Unsetting \$CS132_ENV_CONTAINER_NAME..."
-    fi
-
-    unset CS132_ENV_ARCH
-    unset CS132_ENV_BIN_DIR
-    unset CS132_ENV_MOUNT_DIR
-    unset CS132_ENV_CONTAINER_NAME
-
+if [[ ${BASH_SOURCE[0]} != "$0" ]]; then # only source remove and reset
+  if [[ $CMD != "remove" && $CMD != "reset" ]]; then
+    echo "This command should not be sourced. Please the command without source"
+    echo "    ccenv $CMD ${@:3}"
     return
-
-elif [[ "$CMD" == "reset" ]]; then
-    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-        echo "To run correctly, please source this script by running"
-        echo "    source ccenv reset"
-        exit 0
-    fi
-
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Remember bin dir..."
-        echo "BIN_DIR=\"$CS132_ENV_BIN_DIR\""
-        echo
-        echo "Remember bin dir..."
-        echo "MOUNT_DIR=\"$CS132_ENV_MOUNT_DIR\""
-        echo
-        echo "Removing and restarting container..."
-        echo "source ccenv remove && source \$BIN_DIR/init\" \"$MOUNT_DIR\""
-    fi
-
-    BIN_DIR="$CS132_ENV_BIN_DIR"
-    MOUNT_DIR="$CS132_ENV_MOUNT_DIR"
-
-    source ccenv remove && source "$BIN_DIR/init" "$MOUNT_DIR"
-
-    return
-
-else # gradle commands
-    if [[ ! -n "$VERBOSE" ]]; then
-        echo "Running gradle \"$CMD\" in \"$HW\"..."
-        echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && \\"
-        echo "  docker compose exec \"$CS132_ENV_CONTAINER_NAME\" \\"
-        echo "bash -c \"cd ./${HW} && gradle ${CMD}\" )"
-        echo
-    fi
-
-    ( cd "$CS132_ENV_BIN_DIR/docker" && \
-        docker compose exec "$CS132_ENV_CONTAINER_NAME" \
-        bash -c "cd ./${HW} && gradle ${CMD}" )
+  fi
 fi
 
-exit 0
+if [[ -z $CMD ]]; then
+  echo "Usage: $(basename $0) -h"
+  echo "       $(basename $0) [-v] cmd [bash command]"
+  echo "       $(basename $0) [-v] reset [new_mount_dir]"
+  echo "       $(basename $0) [-v] [ls | start | stop | remove]"
+  echo "       $(basename $0) [-v] gradle [gradle command] [project root]"
+  echo
+  echo "* To view the project root(s) mounted to the container, run"
+  echo "      $(basename $0) ls"
+  echo
+  echo "* To start the container, run"
+  echo "      $(basename $0) start"
+  echo "  - Note: The container is started by default when you run source bin/init"
+  echo
+  echo "* To stop the container, run"
+  echo "      $(basename $0) stop"
+  echo
+  echo "* To remove the container, run"
+  echo "      source $(basename $0) remove"
+  echo
+  echo "* To reset the container, run"
+  echo "      source $(basename $0) reset"
+  echo
+  echo "* To run gradle commands, run"
+  echo "      $(basename $0) gradle \"[gradle_command]\" [project_root]"
+  echo
+  echo "* To run bash commands, run"
+  echo "      $(basename $0) cmd \"[bash_command]\""
+  echo
+  echo "The -h and -v flags are for help and verbose, respectively"
+  ccenv ls
+
+  exit 0
+fi
+
+case "$CMD" in
+  "cmd")
+    $CS132_ENV_BIN_DIR/utils/cmd.sh "$VERBOSE" "$SH_CMD"
+    ;;
+  "ls")
+    $CS132_ENV_BIN_DIR/utils/ls.sh "$VERBOSE"
+    ;;
+  "start")
+    $CS132_ENV_BIN_DIR/utils/start.sh "$VERBOSE"
+    ;;
+  "stop")
+    $CS132_ENV_BIN_DIR/utils/stop.sh "$VERBOSE"
+    ;;
+  "remove")
+    if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+      echo "To run correctly, please source this script by running"
+      echo "    source $(basename $0) remove"
+      exit 0
+    fi
+    source $CS132_ENV_BIN_DIR/utils/remove.sh "$VERBOSE"
+    ;;
+  "reset")
+    if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+      echo "To run correctly, please source this script by running"
+      echo "    source $(basename $0) reset"
+      exit 0
+    fi
+    source $CS132_ENV_BIN_DIR/utils/reset.sh "$VERBOSE" "$NEW_MOUNT_DIR"
+    ;;
+  "gradle")
+    $CS132_ENV_BIN_DIR/utils/gradle_cmd.sh "$VERBOSE" "$GRADLE_CMD" "$HW"
+    ;;
+esac
