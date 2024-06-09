@@ -10,7 +10,7 @@ if echo "$GRADLE_CMD" | grep -q "run"; then
 fi
 
 if [[ ! -z $VERBOSE ]]; then
-  echo "Running gradle \"$GRADLE_CMD\" in \"$HW\"..."
+  echo "Running gradle -q \"$GRADLE_CMD\" in \"$HW\"..."
   echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && \\"
   echo "  docker compose exec \"$CS132_ENV_CONTAINER_NAME\" \\"
   echo "bash -c \"cd ./${HW} && gradle ${GRADLE_CMD}\" )"
@@ -19,4 +19,4 @@ fi
 
 (cd "$CS132_ENV_BIN_DIR/docker" \
   && docker compose exec "$CS132_ENV_CONTAINER_NAME" \
-    bash -c "cd ./${HW} && gradle ${GRADLE_CMD}")
+    bash -c "cd ./${HW} && gradle -q ${GRADLE_CMD}")
