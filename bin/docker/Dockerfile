@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk
+FROM openjdk:17-jdk-slim-buster
 ARG GRADLE_VERSION=8.7
 ARG JAVACC_VERSION=7.0.13
 
@@ -17,16 +17,14 @@ ENV GRADLE_HOME=/opt/gradle-${GRADLE_VERSION}
 ENV JAVACC_HOME=/opt/javacc-javacc-${JAVACC_VERSION}
 ENV PATH=${JAVACC_HOME}/scripts:${GRADLE_HOME}/bin:${PATH}
 
-WORKDIR /cs132
+RUN groupadd -r cs132-env && useradd -r -g cs132-env -m -d /home/cs132-env -s /bin/bash cs132-env
+RUN mkdir /cs132 && chown -R cs132-env:cs132-env /cs132 /opt
 
+WORKDIR /cs132
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-RUN groupadd -f ${GROUP} \
-    && useradd -m -s /bin/bash -g ${GROUP} ${USER} \
-    && chown -R ${USER}:${GROUP} /cs132 /opt
-
-USER ${USER}
+USER cs132-env
 
 ENTRYPOINT ["/entrypoint.sh"]

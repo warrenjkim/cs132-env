@@ -1,13 +1,17 @@
 #!/bin/bash
 
-CMD="$1"
-HW="${!#}"
-SH_CMD="${@:2}"
-GRADLE_CMD="${@:2}"
-NEW_MOUNT_DIR="$2"
+CMD="$1"             # command to execute
+HW="${!#}"           # homework number
+SH_CMD="${@:2}"      # shell command
+GRADLE_CMD="${@:2}"  # gradle command
+FILE_NAME="$2"       # testcase file name
+NEW_MOUNT_DIR="$2"   # new mount directory
+TYPE="$2"            # s or sv
+OPTIONS="$3"         # sparrow.jar options
+INPUT_FILE_NAME="$4" # input file
 unset VERBOSE
 
-OPTSTRING="hv"
+OPTSTRING="hv"       # options
 
 while getopts ${OPTSTRING} opt; do
   case ${opt} in
@@ -19,7 +23,12 @@ while getopts ${OPTSTRING} opt; do
       CMD="$2"
       SH_CMD="${@:3}"
       GRADLE_CMD="${@:3}"
+      FILE_NAME="$3"
       NEW_MOUNT_DIR="$3"
+
+      TYPE="$3"
+      OPTIONS="$4"
+      INPUT_FILE_NAME="$5"
       ;;
     ?)
       break
@@ -32,10 +41,15 @@ if [[ ${BASH_SOURCE[0]} != "$0" && $1 == "-v" ]]; then
   CMD="$2"
   SH_CMD="${@:3}"
   GRADLE_CMD="${@:3}"
+  FILE_NAME="$3"
   NEW_MOUNT_DIR="$3"
+
+  TYPE="$3"
+  OPTIONS="$4"
+  INPUT_FILE_NAME="$5"
 fi
 
-if [[ ${BASH_SOURCE[0]} != "$0" ]]; then # only source remove and reset
+if [[ ${BASH_SOURCE[0]} != "$0" ]]; then  # only source remove and reset
   if [[ $CMD != "remove" && $CMD != "reset" ]]; then
     echo "This command should not be sourced. Please the command without source"
     echo "    ccenv $CMD ${@:3}"
@@ -43,12 +57,13 @@ if [[ ${BASH_SOURCE[0]} != "$0" ]]; then # only source remove and reset
   fi
 fi
 
-if [[ -z $CMD ]]; then
+if [[ -z $CMD ]]; then  # bad command
   echo "Usage: $(basename $0) -h"
   echo "       $(basename $0) [-v] cmd [bash command]"
   echo "       $(basename $0) [-v] reset [new_mount_dir]"
   echo "       $(basename $0) [-v] [ls | start | stop | remove]"
-  echo "       $(basename $0) [-v] gradle [gradle command] [project root]"
+  echo "       $(basename $0) [-v] test hw[12345]/[testcase] [project root]"
+  echo "       $(basename $0) [-v] gradle [gradle command] hw[12345]/[testcase] [project root]"
   echo
   echo "* To view the project root(s) mounted to the container, run"
   echo "      $(basename $0) ls"
@@ -72,6 +87,9 @@ if [[ -z $CMD ]]; then
   echo "* To run bash commands, run"
   echo "      $(basename $0) cmd \"[bash_command]\""
   echo
+  echo "* To test a single testcase, run"
+  echo "      $(basename $0) test hw[12345]/[testcase] [project root]"
+  echo
   echo "The -h and -v flags are for help and verbose, respectively"
   ccenv ls
 
@@ -79,6 +97,9 @@ if [[ -z $CMD ]]; then
 fi
 
 case "$CMD" in
+  "test")
+    $CS132_ENV_BIN_DIR/utils/test.sh "$VERBOSE" "$FILE_NAME" "$HW"
+    ;;
   "cmd")
     $CS132_ENV_BIN_DIR/utils/cmd.sh "$VERBOSE" "$SH_CMD"
     ;;
@@ -110,4 +131,13 @@ case "$CMD" in
   "gradle")
     $CS132_ENV_BIN_DIR/utils/gradle_cmd.sh "$VERBOSE" "$GRADLE_CMD" "$HW"
     ;;
+  "sparrow")
+    $CS132_ENV_BIN_DIR/utils/sparrow.sh "$VERBOSE" "$TYPE" "$OPTIONS" "$INPUT_FILE_NAME"
+    ;;
+  "venus")
+    $CS132_ENV_BIN_DIR/utils/venus.sh "$VERBOSE" "$FILE_NAME"
+    ;;
+  # "compile")
+  #   $CS132_ENV_BIN_DIR/utils/compile.sh "$VERBOSE" "$FILE_NAME"
+  #   ;;
 esac

@@ -9,21 +9,21 @@ if [[ $MOUNT_DIR == "-v" ]]; then
   unset MOUNT_DIR
 fi
 
-if [[ ${BASH_SOURCE[0]} == "$0" ]]; then # not sourced
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then  # not sourced
   echo "To run correctly, please source this script by running"
   echo "    source bin/init"
   exit 0
 fi
 
-if [[ -n $CS132_ENV_BIN_DIR ]]; then # bin is already in $PATH
+if [[ -n $CS132_ENV_BIN_DIR ]]; then  # bin is already in $PATH
   if [[ -z $(cd "$CS132_ENV_BIN_DIR/docker" \
-    && docker ps -a | grep "$CS132_ENV_CONTAINER_NAME") ]]; then # if the container exists.
+    && docker ps -a | grep "$CS132_ENV_CONTAINER_NAME") ]]; then  # if the container exists.
     echo "$CS132_ENV_BIN_DIR is already in \$PATH!"
     echo "Starting container instead..."
     echo
     ccenv start && ccenv -h
     return
-  else # container must already be running, there is nothing to do.
+  else  # container must already be running, there is nothing to do.
     echo "Docker container is already running!"
     echo
     ccenv -h
@@ -31,8 +31,8 @@ if [[ -n $CS132_ENV_BIN_DIR ]]; then # bin is already in $PATH
   fi
 fi
 
-export CS132_ENV_BIN_DIR="$(dirname "$(realpath "bin/init")")" # export the bin directory.
-if [[ -n $VERBOSE ]]; then                                     # verbose logging.
+export CS132_ENV_BIN_DIR="$(dirname "$(realpath "bin/init")")"  # export the bin directory.
+if [[ -n $VERBOSE ]]; then                                      # verbose logging.
   echo 'Created environment variable: $CS132_ENV_BIN_DIR...'
   echo 'Created environment variable: $CS132_ENV_MOUNT_DIR...'
   echo
@@ -40,14 +40,14 @@ if [[ -n $VERBOSE ]]; then                                     # verbose logging
   echo "Detecting architecture..."
 fi
 
-export CS132_ENV_MOUNT_DIR="$(realpath "${MOUNT_DIR:-.}")" # mount dir is CWD if not specified.
+export CS132_ENV_MOUNT_DIR="$(realpath "${MOUNT_DIR:-.}")"  # mount dir is CWD if not specified.
 ARCH="$(uname -m)"
 
-if [[ -n $VERBOSE ]]; then # verbose logging.
+if [[ -n $VERBOSE ]]; then  # verbose logging.
   echo "Found $ARCH"
 fi
 
-case "$ARCH" in # match architecture.
+case "$ARCH" in  # match architecture.
   x86_64 | amd64)
     export CS132_ENV_ARCH="amd64"
     ;;
@@ -60,15 +60,15 @@ case "$ARCH" in # match architecture.
     ;;
 esac
 
-if [[ -n $VERBOSE ]]; then # verbose logging.
+if [[ -n $VERBOSE ]]; then  # verbose logging.
   echo 'Created environment variable: $CS132_ENV_ARCH... '
   echo
   echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
 fi
 
-export PATH="$CS132_ENV_BIN_DIR:$PATH" # set new path
+export PATH="$CS132_ENV_BIN_DIR:$PATH"  # set new path
 
-if [[ -n $VERBOSE ]]; then # verbose logging.
+if [[ -n $VERBOSE ]]; then  # verbose logging.
   echo "\$PATH is now $PATH"
   echo
   echo "Mounting $CS132_ENV_MOUNT_DIR to /cs132..."
@@ -78,15 +78,15 @@ fi
 echo "============================"
 echo "Starting docker container..."
 echo "============================"
-ccenv start # start the container once it's created.
+ccenv start  # start the container once it's created.
 export CS132_ENV_CONTAINER_NAME="$(docker ps -a | grep 'cs132-env' | awk '{print $(NF)}')"
 
 if [[ -n $VERBOSE ]]; then # verbose logging.
   echo 'Created environment variable: $CS132_ENV_CONTAINER_NAME...'
 fi
 
-echo "Mounted '$CS132_ENV_MOUNT_DIR' to /cs132." # tell the user the path that got mounted.
-ccenv ls                                         # list projects that were found.
+echo "Mounted '$CS132_ENV_MOUNT_DIR' to /cs132."  # tell the user the path that got mounted.
+ccenv ls                                          # list projects that were found.
 echo
 
 return
