@@ -1,5 +1,5 @@
 # CS132 Docker Container
-This docker container runs Java 8 and Gradle 8.7.
+This docker container runs Java 17 and Gradle 8.7.
 
 ## Requirements
 Docker Compose
@@ -53,17 +53,30 @@ To see which project roots are mounted, run:
 ccenv ls
 ```
 
-### Gradle commands
-To run a gradle command in the container, run:
+### Testing Individual test cases
+To test a single testcase, run:
 ```
-ccenv [your gradle command here] [your project root]
+ccenv test hw[12345]/[testcase] [your project root]
+```
+
+### Gradle run
+To run `gradle run` in the container, run:
+```
+ccenv gradle run hw[12345]/[testcase] [your project root]
 ```
 
 For example, if your project root is `hw1`,
 ```
-ccenv test hw1
+ccenv run hw1/test01 hw1
 ```
-will run `gradle test` with `hw1` as the project root.
+will run `gradle run <testcases/hw1/test01` with `hw1` as the project root.
+
+
+### Gradle pregrade
+To run the pregrade script in the container, run:
+```
+ccenv gradle pregrade [your project root]
+```
 
 ## TLDR
 If you're too lazy to manually run the above commands to install, run:
@@ -73,38 +86,3 @@ git clone https://github.com/warrenjkim/cs132-env \
 && source bin/init [mount_dir]
 ```
 replacing `[mount_dir]` with the appropriate directory.
-
-
-# Manual Installation (GHCR)
-The docker image can also be run manually. Start by pulling the docker image:
-```console
-docker pull ghcr.io/warrenjk/cs132-env:[arch]
-```
-replacing `arch` with your architecture. For example, if you are on Apple
-Silicon, you would run:
-```console
-docker pull ghcr.io/warrenjk/cs132-env:arm64
-```
-* **Note:** If you do not specify a tag, it will pull `arm64` by default.
-
-## Commands
-To start the image in detached mode, run:
-```console
-docker run -d --rm --name '[container_name]' -v [mount_dir]:/cs132 warrenjk/cs132-env:[arch]
-```
-replacing `container_name`, `mount_dir`, and `arch` appropriately. For example,
-if you are on Apple Silicon, you would run:
-```console
-docker run -d --rm --name 'cs132-env' -v .:/cs132 warrenjk/cs132-env:arm64
-```
-
-To stop the image, run:
-```console
-docker stop [container_name] -t 0
-```
-replacing `container_name` appropriately.
-
-To run commands, run:
-```console
-docker exec [container_name] bash -c [your command]
-```
