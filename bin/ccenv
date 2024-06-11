@@ -97,7 +97,7 @@ function main() {
         echo "    source $(basename $0) remove"
         exit 1
       fi
-      source $CS132_ENV_BIN_DIR/utils/remove.sh "$VERBOSE"
+      source $CS132_ENV_BIN_DIR/utils/remove.sh
       ;;
     "reset")
       if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
@@ -113,10 +113,10 @@ function main() {
 }
 
 if [[ ${BASH_SOURCE[0]} != "$0" ]]; then  # only source remove and reset
-  if [[ $CMD != "remove" && $CMD != "reset" ]]; then
+  if [[ $1 != "remove" && $1 != "reset" ]]; then
     echo "This command should not be sourced. Please the command without source"
-    echo "    ccenv $CMD ${@:3}"
-    return
+    echo "    ccenv $1 ${@:3}"
+    return 1
   fi
 fi
 
