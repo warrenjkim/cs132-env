@@ -56,20 +56,20 @@ ccenv ls
 ### Testing Individual test cases
 To test a single testcase, run:
 ```
-ccenv test hw[12345]/[testcase] [your project root]
+ccenv test [project root] [testcase] [testcase out]
 ```
 
 ### Gradle run
 To run `gradle run` in the container, run:
 ```
-ccenv gradle run hw[12345]/[testcase] [your project root]
+ccenv run [project root] [testcase]
 ```
 
 For example, if your project root is `hw1`,
 ```
-ccenv run hw1/test01 hw1
+ccenv run hw1 test01
 ```
-will run `gradle run <testcases/hw1/test01` with `hw1` as the project root.
+will run `gradle run <**/**/test01` with `hw1` as the project root.
 
 
 ### Gradle pregrade
