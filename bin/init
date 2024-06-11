@@ -1,13 +1,6 @@
 #!/bin/bash
 
 MOUNT_DIR="$1"
-if [[ ${@:-1} == "-v" ]]; then
-  VERBOSE="true"
-fi
-
-if [[ $MOUNT_DIR == "-v" ]]; then
-  unset MOUNT_DIR
-fi
 
 if [[ ${BASH_SOURCE[0]} == "$0" ]]; then  # not sourced
   echo "To run correctly, please source this script by running"
@@ -32,20 +25,15 @@ if [[ -n $CS132_ENV_BIN_DIR ]]; then  # bin is already in $PATH
 fi
 
 export CS132_ENV_BIN_DIR="$(dirname "$(realpath "bin/init")")"  # export the bin directory.
-if [[ -n $VERBOSE ]]; then                                      # verbose logging.
-  echo 'Created environment variable: $CS132_ENV_BIN_DIR...'
-  echo 'Created environment variable: $CS132_ENV_MOUNT_DIR...'
-  echo
+echo 'Created environment variable: $CS132_ENV_BIN_DIR...'
+echo 'Created environment variable: $CS132_ENV_MOUNT_DIR...'
+echo
 
-  echo "Detecting architecture..."
-fi
+echo "Detecting architecture..."
 
 export CS132_ENV_MOUNT_DIR="$(realpath "${MOUNT_DIR:-.}")"  # mount dir is CWD if not specified.
 ARCH="$(uname -m)"
-
-if [[ -n $VERBOSE ]]; then  # verbose logging.
-  echo "Found $ARCH"
-fi
+echo "Found $ARCH"
 
 case "$ARCH" in  # match architecture.
   x86_64 | amd64)
@@ -60,32 +48,24 @@ case "$ARCH" in  # match architecture.
     ;;
 esac
 
-if [[ -n $VERBOSE ]]; then  # verbose logging.
-  echo 'Created environment variable: $CS132_ENV_ARCH... '
-  echo
-  echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
-fi
+echo 'Created environment variable: $CS132_ENV_ARCH... '
+echo
+echo "Prepending $CS132_ENV_BIN_DIR to \$PATH..."
 
 export PATH="$CS132_ENV_BIN_DIR:$PATH"  # set new path
-
-if [[ -n $VERBOSE ]]; then  # verbose logging.
-  echo "\$PATH is now $PATH"
-  echo
-  echo "Mounting $CS132_ENV_MOUNT_DIR to /cs132..."
-  echo
-fi
+echo "\$PATH is now $PATH"
+echo
+echo "Mounting $CS132_ENV_MOUNT_DIR to /cs132..."
+echo
 
 echo "============================"
 echo "Starting docker container..."
 echo "============================"
 ccenv start  # start the container once it's created.
 export CS132_ENV_CONTAINER_NAME="$(docker ps -a | grep 'cs132-env' | awk '{print $(NF)}')"
-
-if [[ -n $VERBOSE ]]; then # verbose logging.
-  echo 'Created environment variable: $CS132_ENV_CONTAINER_NAME...'
-fi
-
+echo 'Created environment variable: $CS132_ENV_CONTAINER_NAME...'
 echo "Mounted '$CS132_ENV_MOUNT_DIR' to /cs132."  # tell the user the path that got mounted.
+
 ccenv ls                                          # list projects that were found.
 echo
 

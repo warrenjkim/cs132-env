@@ -1,21 +1,12 @@
 #!/bin/bash
 
-VERBOSE="$1"
-HW="$3"
-GRADLE_CMD="$(echo "$2" | sed s/\ "$HW\s*\$"//)"
+HW="$1"
+GRADLE_CMD="$(echo "$2" | sed s/\ "$HW\s*\$"//)"  # strip the hw
 
-if echo "$GRADLE_CMD" | grep -q "run"; then
+if echo "$GRADLE_CMD" | grep -q "run"; then  # if gradle run, take the filename
     FILE_NAME="$(echo "$GRADLE_CMD" | awk '{print $(NF)}')"
-    TESTCASE="testcases/$FILE_NAME"
-    GRADLE_CMD="run <$TESTCASE"
-fi
-
-if [[ ! -z $VERBOSE ]]; then
-  echo "Running gradle -q \"$GRADLE_CMD\" in \"$HW\"..."
-  echo "( cd \"$CS132_ENV_BIN_DIR/docker\" && \\"
-  echo "  docker compose exec \"$CS132_ENV_CONTAINER_NAME\" \\"
-  echo "  bash -c \"cd ./${HW} && gradle ${GRADLE_CMD}\" )"
-  echo
+    ccenv run "$HW" "$FILE_NAME"
+    exit 0
 fi
 
 (cd "$CS132_ENV_BIN_DIR/docker" \

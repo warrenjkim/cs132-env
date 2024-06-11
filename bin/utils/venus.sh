@@ -1,10 +1,6 @@
 #!/bin/bash
 
-VERBOSE="$1"
-FILE_NAME="$2"
+FILE_NAME="$1"
 
-if [[ -n $VERBOSE ]]; then
-  echo "Running ccenv cmd \"cd /cs132 && java -jar ./hw3/misc/venus.jar <\$(find . -name \\\"$FILE_NAME\\\" -print -quit)\""
-fi
-
-ccenv cmd "cd /cs132 && java -jar ./hw5/misc/venus.jar <\$(find /cs132 -name \"$FILE_NAME\" -print -quit)"
+VENUS_PATH="$( ccenv cmd "find /cs132 -wholename **/**/venus.jar -print -quit" )"
+ccenv cmd "cd /cs132 && java -jar $VENUS_PATH <\$(find /cs132 -wholename **/**/\"$FILE_NAME\" -print -quit)"

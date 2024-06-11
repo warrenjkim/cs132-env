@@ -1,69 +1,13 @@
 #!/bin/bash
 
-CMD="$1"             # command to execute
-HW="${!#}"           # homework number
-SH_CMD="${@:2}"      # shell command
-GRADLE_CMD="${@:2}"  # gradle command
-FILE_NAME="$2"       # testcase file name
-NEW_MOUNT_DIR="$2"   # new mount directory
-TYPE="$2"            # s or sv
-OPTIONS="$3"         # sparrow.jar options
-INPUT_FILE_NAME="$4" # input file
-unset VERBOSE
-
-OPTSTRING="hv"       # options
-
-while getopts ${OPTSTRING} opt; do
-  case ${opt} in
-    h)
-      unset CMD
-      ;;
-    v)
-      VERBOSE="true"
-      CMD="$2"
-      SH_CMD="${@:3}"
-      GRADLE_CMD="${@:3}"
-      FILE_NAME="$3"
-      NEW_MOUNT_DIR="$3"
-
-      TYPE="$3"
-      OPTIONS="$4"
-      INPUT_FILE_NAME="$5"
-      ;;
-    ?)
-      break
-      ;;
-  esac
-done
-
-if [[ ${BASH_SOURCE[0]} != "$0" && $1 == "-v" ]]; then
-  VERBOSE="true"
-  CMD="$2"
-  SH_CMD="${@:3}"
-  GRADLE_CMD="${@:3}"
-  FILE_NAME="$3"
-  NEW_MOUNT_DIR="$3"
-
-  TYPE="$3"
-  OPTIONS="$4"
-  INPUT_FILE_NAME="$5"
-fi
-
-if [[ ${BASH_SOURCE[0]} != "$0" ]]; then  # only source remove and reset
-  if [[ $CMD != "remove" && $CMD != "reset" ]]; then
-    echo "This command should not be sourced. Please the command without source"
-    echo "    ccenv $CMD ${@:3}"
-    return
-  fi
-fi
-
-if [[ -z $CMD ]]; then  # bad command
-  echo "Usage: $(basename $0) -h"
-  echo "       $(basename $0) [-v] cmd [bash command]"
-  echo "       $(basename $0) [-v] reset [new_mount_dir]"
-  echo "       $(basename $0) [-v] [ls | start | stop | remove]"
-  echo "       $(basename $0) [-v] test hw[12345]/[testcase] [project root]"
-  echo "       $(basename $0) [-v] gradle [gradle command] hw[12345]/[testcase] [project root]"
+function usage() {
+  echo "Usage: $(basename $0) cmd \"[bash command]\""
+  echo "       $(basename $0) reset [new_mount_dir]"
+  echo "       $(basename $0) [ls | start | stop | remove]"
+  echo "       $(basename $0) test [project root] [testcase]"
+  echo "       $(basename $0) test [project root] [testcase] [testcase_out]"
+  echo "       $(basename $0) run [project root] [testcase]"
+  echo "       $(basename $0) gradle [project_root] [gradle command]"
   echo
   echo "* To view the project root(s) mounted to the container, run"
   echo "      $(basename $0) ls"
@@ -81,63 +25,99 @@ if [[ -z $CMD ]]; then  # bad command
   echo "* To reset the container, run"
   echo "      source $(basename $0) reset"
   echo
-  echo "* To run gradle commands, run"
-  echo "      $(basename $0) gradle \"[gradle_command]\" [project_root]"
-  echo
-  echo "* To run bash commands, run"
-  echo "      $(basename $0) cmd \"[bash_command]\""
-  echo
-  echo "* To test a single testcase, run"
-  echo "      $(basename $0) test hw[12345]/[testcase] [project root]"
-  echo
-  echo "The -h and -v flags are for help and verbose, respectively"
   ccenv ls
 
   exit 0
+}
+
+function ccenv_test() {
+  local hw="$1"
+  local in_file="$2"
+  local out_file="${3:-"$2.out"}"
+  $CS132_ENV_BIN_DIR/utils/test.sh "$hw" "$in_file" "$out_file"
+}
+
+function ccenv_cmd() {
+  local sh_cmd="$1"
+  $CS132_ENV_BIN_DIR/utils/cmd.sh "$sh_cmd"
+}
+
+function ccenv_run() {
+  local hw="$1"
+  local in_file="$2"
+  $CS132_ENV_BIN_DIR/utils/run.sh "$hw" "$in_file"
+}
+
+function ccenv_sparrow() {
+  local type="$1"
+  local options="$2"
+  local in_file="$3"
+  $CS132_ENV_BIN_DIR/utils/sparrow.sh "$type" "$options" "$in_file"
+}
+
+function ccenv_venus() {
+  local in_file="$1"
+  $CS132_ENV_BIN_DIR/utils/venus.sh "$in_file"
+}
+
+function main() {
+  local cmd="$1"
+  shift
+  case "$cmd" in
+    "test")
+      ccenv_test "$@"
+      ;;
+    "cmd")
+      ccenv_cmd "$@"
+      ;;
+    "run")
+      ccenv_run "$@"
+      ;;
+    "gradle")
+      $CS132_ENV_BIN_DIR/utils/gradle_cmd.sh "$GRADLE_CMD" "$HW"
+      ;;
+    "sparrow")
+      ccenv_sparrow "$@"
+      ;;
+    "venus")
+      ccenv_venus "$@"
+      ;;
+    "ls")
+      $CS132_ENV_BIN_DIR/utils/ls.sh
+      ;;
+    "start")
+      $CS132_ENV_BIN_DIR/utils/start.sh
+      ;;
+    "stop")
+      $CS132_ENV_BIN_DIR/utils/stop.sh
+      ;;
+    "remove")
+      if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+        echo "To run correctly, please source this script by running"
+        echo "    source $(basename $0) remove"
+        exit 1
+      fi
+      source $CS132_ENV_BIN_DIR/utils/remove.sh "$VERBOSE"
+      ;;
+    "reset")
+      if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+        echo "To run correctly, please source this script by running"
+        echo "    source $(basename $0) reset"
+        exit 1
+      fi
+      source $CS132_ENV_BIN_DIR/utils/reset.sh "$NEW_MOUNT_DIR"
+      ;;
+    *)
+      usage
+  esac
+}
+
+if [[ ${BASH_SOURCE[0]} != "$0" ]]; then  # only source remove and reset
+  if [[ $CMD != "remove" && $CMD != "reset" ]]; then
+    echo "This command should not be sourced. Please the command without source"
+    echo "    ccenv $CMD ${@:3}"
+    return
+  fi
 fi
 
-case "$CMD" in
-  "test")
-    $CS132_ENV_BIN_DIR/utils/test.sh "$VERBOSE" "$FILE_NAME" "$HW"
-    ;;
-  "cmd")
-    $CS132_ENV_BIN_DIR/utils/cmd.sh "$VERBOSE" "$SH_CMD"
-    ;;
-  "ls")
-    $CS132_ENV_BIN_DIR/utils/ls.sh "$VERBOSE"
-    ;;
-  "start")
-    $CS132_ENV_BIN_DIR/utils/start.sh "$VERBOSE"
-    ;;
-  "stop")
-    $CS132_ENV_BIN_DIR/utils/stop.sh "$VERBOSE"
-    ;;
-  "remove")
-    if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
-      echo "To run correctly, please source this script by running"
-      echo "    source $(basename $0) remove"
-      exit 0
-    fi
-    source $CS132_ENV_BIN_DIR/utils/remove.sh "$VERBOSE"
-    ;;
-  "reset")
-    if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
-      echo "To run correctly, please source this script by running"
-      echo "    source $(basename $0) reset"
-      exit 0
-    fi
-    source $CS132_ENV_BIN_DIR/utils/reset.sh "$VERBOSE" "$NEW_MOUNT_DIR"
-    ;;
-  "gradle")
-    $CS132_ENV_BIN_DIR/utils/gradle_cmd.sh "$VERBOSE" "$GRADLE_CMD" "$HW"
-    ;;
-  "sparrow")
-    $CS132_ENV_BIN_DIR/utils/sparrow.sh "$VERBOSE" "$TYPE" "$OPTIONS" "$INPUT_FILE_NAME"
-    ;;
-  "venus")
-    $CS132_ENV_BIN_DIR/utils/venus.sh "$VERBOSE" "$FILE_NAME"
-    ;;
-  # "compile")
-  #   $CS132_ENV_BIN_DIR/utils/compile.sh "$VERBOSE" "$FILE_NAME"
-  #   ;;
-esac
+main "$@"
