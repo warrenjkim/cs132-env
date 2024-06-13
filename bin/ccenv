@@ -105,7 +105,7 @@ function main() {
         echo "    source $(basename $0) reset"
         exit 1
       fi
-      source $CS132_ENV_BIN_DIR/utils/reset.sh "$NEW_MOUNT_DIR"
+      source $CS132_ENV_BIN_DIR/utils/reset.sh "$1"
       ;;
     *)
       usage

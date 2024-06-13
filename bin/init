@@ -14,12 +14,12 @@ if [[ -n $CS132_ENV_BIN_DIR ]]; then  # bin is already in $PATH
     echo "$CS132_ENV_BIN_DIR is already in \$PATH!"
     echo "Starting container instead..."
     echo
-    ccenv start && ccenv -h
+    ccenv start && ccenv
     return
   else  # container must already be running, there is nothing to do.
     echo "Docker container is already running!"
     echo
-    ccenv -h
+    ccenv
     return
   fi
 fi
