@@ -74,7 +74,7 @@ function main() {
       ccenv_run "$@"
       ;;
     "gradle")
-      $CS132_ENV_BIN_DIR/utils/gradle_cmd.sh "$GRADLE_CMD" "$HW"
+      $CS132_ENV_BIN_DIR/utils/gradle_cmd.sh "$2" "$1"
       ;;
     "sparrow")
       ccenv_sparrow "$@"

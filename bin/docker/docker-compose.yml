@@ -1,10 +1,9 @@
-version: '3.8'
 services:
   cs132-env:
     container_name: cs132-env
     build:
       context: .
-    image: warrenjk/cs132-env:${CS132_ENV_ARCH}
+    image: warrenjk/cs132-env:latest
     working_dir: /cs132
     volumes:
       - ${CS132_ENV_MOUNT_DIR}:/cs132
