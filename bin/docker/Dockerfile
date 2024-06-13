@@ -2,6 +2,9 @@ FROM openjdk:17-jdk-slim-buster
 ARG GRADLE_VERSION=8.7
 ARG JAVACC_VERSION=7.0.13
 
+ARG UID=1000
+ARG GID=998
+
 RUN apt-get update && apt-get install -y wget unzip && rm -rf /var/lib/apt/lists/* \
     && wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -P /tmp \
     && unzip /tmp/gradle-${GRADLE_VERSION}-bin.zip -d /opt \
@@ -17,14 +20,12 @@ ENV GRADLE_HOME=/opt/gradle-${GRADLE_VERSION}
 ENV JAVACC_HOME=/opt/javacc-javacc-${JAVACC_VERSION}
 ENV PATH=${JAVACC_HOME}/scripts:${GRADLE_HOME}/bin:${PATH}
 
-RUN groupadd -r cs132-env && useradd -r -g cs132-env -m -d /home/cs132-env -s /bin/bash cs132-env
-RUN mkdir /cs132 && chown -R cs132-env:cs132-env /cs132 /opt
+RUN groupadd -g ${GID} cs132-env && useradd -m -u ${UID} -g cs132-env -s /bin/bash cs132-env
+
+USER cs132-env
 
 WORKDIR /cs132
 
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-USER cs132-env
 
 ENTRYPOINT ["/entrypoint.sh"]
