@@ -56,8 +56,13 @@ ccenv ls
 ### Testing Individual test cases
 To test a single testcase, run:
 ```
+ccenv test [project root] [testcase]
+```
+or
+```
 ccenv test [project root] [testcase] [testcase out]
 ```
+* **Note:** Files must be inside `/cs132`.
 
 ### Gradle run
 To run `gradle run` in the container, run:
@@ -71,11 +76,24 @@ ccenv run hw1 test01
 ```
 will run `gradle run <**/**/test01` with `hw1` as the project root.
 
+* **Note:** Files must be inside `/cs132`.
 
 ### Gradle pregrade
 To run the pregrade script in the container, run:
 ```
 ccenv gradle pregrade [your project root]
+```
+
+### Other Gradle commands
+To run a regular gradle command in the container, run:
+```
+ccenv gradle "your gradle command" [your project root]
+```
+
+### Shell commands
+To run a shell command in the container, run:
+```
+ccenv cmd "your command"
 ```
 
 ## TLDR
